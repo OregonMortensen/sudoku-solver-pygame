@@ -137,6 +137,16 @@ def draw_reset_button(screen):
     screen.blit(text, text_rect)
     return button_rect
 
+
+# Draw all UI elements
+def draw_all(screen, board):
+    draw_grid(screen, board)
+    draw_instructions(screen)
+    draw_solve_button(screen)
+    draw_reset_button(screen)
+    pygame.display.flip()
+
+
 # Allow the user to input the initial board
 def user_input(screen, board):
     """
@@ -189,23 +199,15 @@ def user_input(screen, board):
                 elif event.key == pygame.K_RIGHT:
                     current_col = (current_col + 1) % 9
                 elif event.key in [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9]:
-                    # Update the board with the number pressed
                     board.grid[current_row][current_col] = int(event.unicode)
                 elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_0:
-                    # Clear the cell
                     board.grid[current_row][current_col] = 0
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
-                    if solve_button_rect.collidepoint(event.pos):
+                    if draw_solve_button(screen).collidepoint(event.pos):
                         return
-                    elif reset_button_rect.collidepoint(event.pos):
-                        # Clear all contents from the board
-                        board.grid = [[0 for _ in range(9)] for _ in range(9)]
-                        draw_grid(screen, board)
-                        draw_instructions(screen)
-                        draw_solve_button(screen)
-                        draw_reset_button(screen)
-                        pygame.display.flip()
+                    elif draw_reset_button(screen).collidepoint(event.pos):
+                        board.reset()
 
 
 # Main function to run the Pygame loop
@@ -221,7 +223,7 @@ def main():
     - Clicking buttons to solve or reset the board.
     - Keeping the display updated with current board and UI state.
     """
-    
+
     # Initialize Pygame
     pygame.init()
 
@@ -235,19 +237,13 @@ def main():
     # Allow user to input the initial state of the Sudoku board
     user_input(screen, board)
 
-    # Draw the initial state of the board
-    draw_grid(screen, board)
-    draw_instructions(screen)
-    solve_button_rect = draw_solve_button(screen)
-    reset_button_rect = draw_reset_button(screen)
-    pygame.display.flip()
-
     # Solver instance
     solver = Solver(board)
 
     # Main loop
     solving = False  # Flag to control solving process
     while True:
+        draw_all(screen, board)  # Refresh the screen with the current state
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -258,25 +254,18 @@ def main():
                     solving = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
-                    if solve_button_rect.collidepoint(event.pos):
+                    if draw_solve_button(screen).collidepoint(event.pos):
                         solving = True
-                    elif reset_button_rect.collidepoint(event.pos):
-                        # Clear all contents from the board
-                        board.grid = [[0 for _ in range(9)] for _ in range(9)]
-                        draw_grid(screen, board)
-                        draw_instructions(screen)
-                        draw_solve_button(screen)
-                        draw_reset_button(screen)
-                        pygame.display.flip()
+                    elif draw_reset_button(screen).collidepoint(event.pos):
+                        board.reset()
+                        user_input(screen, board)  # Allow user to re-enter the Sudoku board
+                        break  # Exit current loop to start new input
+
 
         # Solve step by step
         if solving:
             if solver.solve():
-                draw_grid(screen, board)
-                draw_instructions(screen)
-                draw_solve_button(screen)
-                draw_reset_button(screen)
-                pygame.display.flip()
+                draw_all(screen, board)
                 solving = False  # Stop after solving
             else:
                 print("No solution exists for the given Sudoku board.")

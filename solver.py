@@ -22,6 +22,13 @@ class Board:
         self.grid = [[0 for _ in range(9)] for _ in range(9)]
 
 
+    def reset(self):
+        """
+        Reset the board to its initial empty state.
+        """
+        self.grid = [[0 for _ in range(9)] for _ in range(9)]  # Clear the board, setting all cells to zero
+
+
     def initial_state(self):
         # Set the initial state of the board
         initial_board = [
